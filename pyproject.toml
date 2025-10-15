@@ -1,0 +1,13 @@
+[project]
+name = "kovan-studio-case-todo"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dotenv>=0.9.9",
+    "fastapi[standard]>=0.119.0",
+    "g4f>=0.6.4.0",
+    "google-genai>=1.44.0",
+    "pydantic>=2.12.2",
+]

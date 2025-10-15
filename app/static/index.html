@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>CV Analiz Sistemi</title>
+	<style>
+		* { margin: 0; padding: 0; box-sizing: border-box; }
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 20px;
+		}
+		.container {
+			background: white;
+			border-radius: 20px;
+			box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+			max-width: 600px;
+			width: 100%;
+			padding: 40px;
+		}
+		h1 {
+			color: #333;
+			margin-bottom: 10px;
+			font-size: 28px;
+		}
+		.subtitle {
+			color: #666;
+			margin-bottom: 30px;
+			font-size: 14px;
+		}
+		.upload-area {
+			border: 2px dashed #667eea;
+			border-radius: 12px;
+			padding: 40px;
+			text-align: center;
+			margin-bottom: 20px;
+			cursor: pointer;
+			transition: all 0.3s;
+		}
+		.upload-area:hover {
+			background: #f8f9ff;
+			border-color: #764ba2;
+		}
+		.upload-area.dragover {
+			background: #f0f0ff;
+			border-color: #667eea;
+		}
+		.file-input {
+			display: none;
+		}
+		.upload-icon {
+			font-size: 48px;
+			margin-bottom: 10px;
+		}
+		.upload-text {
+			color: #667eea;
+			font-weight: 600;
+			margin-bottom: 5px;
+		}
+		.upload-hint {
+			color: #999;
+			font-size: 13px;
+		}
+		.file-name {
+			color: #333;
+			margin-top: 10px;
+			font-weight: 500;
+		}
+		.btn {
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			color: white;
+			border: none;
+			padding: 14px 30px;
+			border-radius: 8px;
+			font-size: 16px;
+			font-weight: 600;
+			cursor: pointer;
+			width: 100%;
+			transition: transform 0.2s;
+		}
+		.btn:hover {
+			transform: translateY(-2px);
+		}
+		.btn:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+			transform: none;
+		}
+		.loading {
+			display: none;
+			text-align: center;
+			margin: 20px 0;
+		}
+		.spinner {
+			border: 3px solid #f3f3f3;
+			border-top: 3px solid #667eea;
+			border-radius: 50%;
+			width: 40px;
+			height: 40px;
+			animation: spin 1s linear infinite;
+			margin: 0 auto;
+		}
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
+		.result {
+			display: none;
+			margin-top: 30px;
+		}
+		.score-container {
+			text-align: center;
+			margin-bottom: 30px;
+		}
+		.score-circle {
+			width: 120px;
+			height: 120px;
+			border-radius: 50%;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			color: white;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 36px;
+			font-weight: bold;
+			margin: 0 auto 15px;
+			box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+		}
+		.suggestion {
+			display: inline-block;
+			padding: 8px 20px;
+			border-radius: 20px;
+			font-weight: 600;
+			font-size: 14px;
+			text-transform: uppercase;
+		}
+		.suggestion.evet {
+			background: #10b981;
+			color: white;
+		}
+		.suggestion.hayir {
+			background: #ef4444;
+			color: white;
+		}
+		.suggestion.belki {
+			background: #f59e0b;
+			color: white;
+		}
+		.section {
+			background: #f8f9fa;
+			border-radius: 12px;
+			padding: 20px;
+			margin-bottom: 15px;
+		}
+		.section h3 {
+			color: #667eea;
+			margin-bottom: 10px;
+			font-size: 16px;
+		}
+		.section p {
+			color: #555;
+			line-height: 1.6;
+			font-size: 14px;
+		}
+		.reset-btn {
+			background: #6c757d;
+			margin-top: 15px;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1>🚀 CV Analiz Sistemi</h1>
+		<p class="subtitle">CV'nizi yükleyin, yapay zeka ile analiz edelim</p>
+		
+		<div id="uploadForm">
+			<div class="upload-area" id="uploadArea">
+				<div class="upload-icon">📄</div>
+				<div class="upload-text">CV'nizi buraya sürükleyin</div>
+				<div class="upload-hint">veya tıklayarak seçin (.md formatında)</div>
+				<div class="file-name" id="fileName"></div>
+				<input type="file" class="file-input" id="fileInput" accept=".md">
+			</div>
+			<button class="btn" id="analyzeBtn" disabled>Analiz Et</button>
+		</div>
+
+		<div class="loading" id="loading">
+			<div class="spinner"></div>
+			<p style="margin-top: 15px; color: #667eea;">CV analiz ediliyor...</p>
+		</div>
+
+		<div class="result" id="result">
+			<div class="score-container">
+				<div class="score-circle" id="scoreCircle">0</div>
+				<span class="suggestion" id="suggestionBadge">-</span>
+			</div>
+			
+			<div class="section">
+				<h3>💪 Güçlü Yönler</h3>
+				<p id="strongPoints">-</p>
+			</div>
+			
+			<div class="section">
+				<h3>⚠️ Riskler</h3>
+				<p id="risks">-</p>
+			</div>
+			
+			<div class="section">
+				<h3>📝 Özet</h3>
+				<p id="summary">-</p>
+			</div>
+			
+			<button class="btn reset-btn" id="resetBtn">Yeni Analiz</button>
+		</div>
+	</div>
+
+	<script>
+		const uploadArea = document.getElementById('uploadArea');
+		const fileInput = document.getElementById('fileInput');
+		const fileName = document.getElementById('fileName');
+		const analyzeBtn = document.getElementById('analyzeBtn');
+		const uploadForm = document.getElementById('uploadForm');
+		const loading = document.getElementById('loading');
+		const result = document.getElementById('result');
+		const resetBtn = document.getElementById('resetBtn');
+
+		let selectedFile = null;
+
+		uploadArea.addEventListener('click', () => fileInput.click());
+
+		uploadArea.addEventListener('dragover', (e) => {
+			e.preventDefault();
+			uploadArea.classList.add('dragover');
+		});
+
+		uploadArea.addEventListener('dragleave', () => {
+			uploadArea.classList.remove('dragover');
+		});
+
+		uploadArea.addEventListener('drop', (e) => {
+			e.preventDefault();
+			uploadArea.classList.remove('dragover');
+			const files = e.dataTransfer.files;
+			if (files.length > 0) handleFile(files[0]);
+		});
+
+		fileInput.addEventListener('change', (e) => {
+			if (e.target.files.length > 0) handleFile(e.target.files[0]);
+		});
+
+		function handleFile(file) {
+			if (!file.name.endsWith('.md')) {
+				alert('Lütfen .md formatında bir dosya seçin.');
+				return;
+			}
+			selectedFile = file;
+			fileName.textContent = `✓ ${file.name}`;
+			analyzeBtn.disabled = false;
+		}
+
+		analyzeBtn.addEventListener('click', async () => {
+			if (!selectedFile) return;
+
+			uploadForm.style.display = 'none';
+			loading.style.display = 'block';
+
+			const formData = new FormData();
+			formData.append('file', selectedFile);
+
+			try {
+				const response = await fetch('/analyze-cv/', {
+					method: 'POST',
+					body: formData
+				});
+
+				if (!response.ok) throw new Error('Analiz başarısız');
+
+				const data = await response.json();
+				
+				loading.style.display = 'none';
+				result.style.display = 'block';
+
+				document.getElementById('scoreCircle').textContent = data.score;
+				document.getElementById('suggestionBadge').textContent = data.suggestion;
+				document.getElementById('suggestionBadge').className = `suggestion ${data.suggestion}`;
+				document.getElementById('strongPoints').textContent = data.strong_points;
+				document.getElementById('risks').textContent = data.risks;
+				document.getElementById('summary').textContent = data.summary_of_reason;
+
+			} catch (error) {
+				alert('Bir hata oluştu: ' + error.message);
+				loading.style.display = 'none';
+				uploadForm.style.display = 'block';
+			}
+		});
+
+		resetBtn.addEventListener('click', () => {
+			result.style.display = 'none';
+			uploadForm.style.display = 'block';
+			fileInput.value = '';
+			fileName.textContent = '';
+			selectedFile = null;
+			analyzeBtn.disabled = true;
+		});
+	</script>
+</body>
+</html>
